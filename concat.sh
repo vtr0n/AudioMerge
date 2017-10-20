@@ -2,6 +2,7 @@
 
 dir="files"
 count_files=1
+speed=1
 
 while [ -n "$1" ]
 do
@@ -10,7 +11,9 @@ do
 			echo "Usage:"
 			echo "-h	show this menu"
 			echo "-d	path to directory with audio files"
-			echo "-c	number of output files" ;;
+			echo "-s	speed up treck (range 0.5-2)"
+			echo "-c	number of output files" 
+			exit 0 ;;
 		-d) 
 			dir="$2"
 			if ! [ -d $dir ]; then
@@ -32,6 +35,15 @@ do
 					exit 3
 			fi
 			shift ;;
+			
+		-s) 
+			speed="$2"
+			if [ $(echo "$speed > 2" | bc) -eq 1 -o $(echo "$speed < 0.5" | bc) -eq 1 ] ; then
+					echo 'Range of speend must be 0.5-2'
+					exit 4
+			fi
+			shift ;;
+			
 		--) 
 			shift
 			break ;;
@@ -48,7 +60,7 @@ number_files=$(cat /tmp/Audio_Concat_files | wc -l)
 
 if [ $number_files -lt $count_files ] ; then
 	echo '-c must me greatest then number of files'
-	exit 4
+	exit 5
 fi
 
 let "delimiter = number_files / count_files"
@@ -67,6 +79,12 @@ for file in `cat /tmp/Audio_Concat_files` ; do
 		str=$(cut -b 2- /tmp/Audio_Concat_temp)
 		
 		ffmpeg -i "concat:$str" -acodec copy "output$part.wav"
+		
+		if [ $(echo "$speed == 1" | bc) -eq 0 ] ; then
+			mv "output$part.wav" "/tmp/Audio_Concat_output$part.wav"
+			ffmpeg -i "/tmp/Audio_Concat_output$part.wav" -filter:a "atempo=$speed" -vn "output$part.wav"
+			rm "/tmp/Audio_Concat_output$part.wav"
+		fi
 		str=""
 	fi
 done
