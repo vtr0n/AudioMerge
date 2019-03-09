@@ -1,5 +1,10 @@
-# AudioConcat
-Shell script to concat and speed up/down audio files using ffmpeg
+# AudioMerge
+Shell script to merge audio files using ffmpeg
 
-### Usage
-```./concat.sh -h``` 
+```
+./concat.sh -h
+Usage:
+-h      show this menu
+-d      path to directory with audio files
+-c      number of output files
+``` 
